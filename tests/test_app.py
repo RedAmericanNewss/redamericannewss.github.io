@@ -212,43 +212,37 @@ def run():
         p.check("#fOk"); go("#postBtn")
         check("Feed", "Video post appears with player", p.locator("#feedList .post").first.locator("video").count() == 1)
         # like / comment / repost on a friend's post
-        fp = p.locator("#feedList .post").filter(has_text="[Friend B]").first
+        fp = p.locator("#feedList .post").filter(has_text="Jim Jordan").first
         likes_before = fp.locator(".act").nth(0).inner_text()
         fp.locator(".act").nth(0).click(); p.wait_for_timeout(120)
-        fp = p.locator("#feedList .post").filter(has_text="[Friend B]").first
+        fp = p.locator("#feedList .post").filter(has_text="Jim Jordan").first
         check("Feed", "Like button counts up", fp.locator(".act").nth(0).inner_text() != likes_before and "Liked" in fp.locator(".act").nth(0).inner_text())
         fp.locator(".cform input").fill("Nice post!")
         fp.locator(".cform button").click(); p.wait_for_timeout(120)
-        fp = p.locator("#feedList .post").filter(has_text="[Friend B]").first
+        fp = p.locator("#feedList .post").filter(has_text="Jim Jordan").first
         check("Feed", "Comment on a post shows at the bottom", "Nice post!" in fp.inner_text())
         fp.locator(".act").nth(1).click(); p.wait_for_timeout(100)
         check("Feed", "Comment button opens/closes thread", True)
         cnt_before = p.locator("#feedList .post").count()
-        fp = p.locator("#feedList .post").filter(has_text="[Friend B]").first
+        fp = p.locator("#feedList .post").filter(has_text="Jim Jordan").first
         fp.locator(".act").nth(2).click(); p.wait_for_timeout(120)
         check("Feed", "Repost adds your repost to the feed", p.locator("#feedList .post").count() == cnt_before + 1)
-        # follow button in feed
-        fp = p.locator("#feedList .post").filter(has_text="[Friend B]").first
-        fp.locator(".who button").click(); p.wait_for_timeout(100)
-        fp = p.locator("#feedList .post").filter(has_text="[Friend B]").first
-        check("Feed", "Follow from a post works", "Following" in fp.locator(".who button").inner_text())
+        # real news posts
+        check("Feed", "Feed shows real sourced articles", p.locator("#feedList .post").filter(has_text="Newsroom").count() == 8 and "[Friend" not in p.inner_text("#feedList"))
         # report
         p.locator("#feedList .post").first.locator("button.back:has-text('⚑ Report')").click(); p.wait_for_timeout(80)
         check("Feed", "Report button responds", "Reported" in toast())
         # filters
         p.click("#feedFilter [data-f='following']"); p.wait_for_timeout(100)
         names = p.locator("#feedList .post .who b").all_inner_texts()
-        check("Feed", "'Following' filter shows only followed + yours", "[Video Creator]" not in names, str(names[:6]))
+        check("Feed", "'Following' filter shows only yours", all(n != "Red American News" for n in names), str(names[:6]))
         p.click("#feedFilter [data-f='top']"); p.wait_for_timeout(100)
         check("Feed", "'Most Liked' filter sorts by likes", p.locator("#feedList .post").count() > 0)
         p.click("#feedFilter [data-f='all']"); p.wait_for_timeout(100)
         # quote card opens story
         p.locator("#feedList .post .quote").filter(has_text="Sourced").first.click(); p.wait_for_timeout(120)
-        check("Feed", "Story card in a post opens the story", vis("story"))
+        check("Feed", "Story card in a post opens the full story", vis("story") and p.locator("#stSrc a").count() >= 1)
         tab("feed")
-        # sample video
-        p.locator("#feedList button[aria-label='Play sample video']").first.click(); p.wait_for_timeout(80)
-        check("Feed", "Sample video responds", "Sample video" in toast())
         # videos page
         go("#feedFilter [data-go='videos']")
         check("Videos", "Videos button opens Videos page", vis("videos") and tab_on("feed"))
