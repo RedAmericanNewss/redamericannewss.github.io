@@ -405,9 +405,9 @@ def run():
         check("Stories", "Second story has two sources", p.locator("#stSrc a").count() == 2)
         check("Stories", "Repost resets for a new story", "Reposted" not in p.inner_text("#repostBtn"))
         p.evaluate("show('brief')"); p.click("#bTabs [data-b='daily']"); p.wait_for_timeout(100)
-        check("Stories", "Daily Brief lists 5 real stories", p.locator("#b-daily [data-story]").count() == 5 and "Kansas" in p.inner_text("#b-daily"))
-        p.locator("#b-daily [data-story='ks']").click(); p.wait_for_timeout(150)
-        check("Stories", "Daily story opens (Kansas)", "Holscher" in p.inner_text("#v-story h1"))
+        check("Stories", "Daily Brief lists 5 real stories", p.locator("#b-daily [data-story]").count() == 5 and "Credit card" in p.inner_text("#b-daily").replace("credit card","Credit card"))
+        p.locator("#b-daily [data-story='energy']").click(); p.wait_for_timeout(150)
+        check("Stories", "Daily story opens (energy bill)", "permitting" in p.inner_text("#v-story h1"))
         check("Stories", "No placeholder text left on Home", "[Headline" not in p.inner_text("#v-home"))
         # ---------- candidate profiles ----------
         p.click("#partyFilter2028 [data-p28='all']") if False else None
@@ -461,7 +461,7 @@ def run():
         check("Quiz", "Tapping a match opens the profile", vis("cand"))
         # ---------- polls ----------
         p.evaluate("show('polls')"); p.wait_for_timeout(100)
-        check("Polls", "3 sourced polls listed", p.locator("#pollList .card").count() == 3 and p.evaluate("[...document.querySelectorAll('#pollList a')].every(a=>a.href.startsWith('https://'))"))
+        check("Polls", "4 sourced polls listed", p.locator("#pollList .card").count() == 4 and p.evaluate("[...document.querySelectorAll('#pollList a')].every(a=>a.href.startsWith('https://'))"))
         check("Polls", "Shows this app's own top-rated", "★" in p.inner_text("#pollApp"))
         # ---------- alerts ----------
         p.evaluate("show('alerts')"); p.wait_for_timeout(100)
@@ -474,14 +474,33 @@ def run():
         check("Calendar", "Key dates listed", p.locator("#calList .calrow").count() == 6 and "Houston" in p.inner_text("#calList"))
         check("Calendar", "How-to-vote links go to official sites", p.evaluate("[...document.querySelectorAll('#v-calendar .check a')].every(a=>/\\.gov\\//.test(a.href))"))
         p.evaluate("show('more')"); p.wait_for_timeout(60)
-        for v in ["compare", "quiz", "polls", "alerts", "calendar", "install"]:
+        for v in ["compare", "quiz", "polls", "alerts", "calendar", "install", "laws"]:
             p.click(f"#v-more [data-go='{v}']"); p.wait_for_timeout(80)
             check("More", f"More menu opens '{v}'", vis(v))
             p.evaluate("show('more')")
+        # ---------- your laws ----------
+        p.evaluate("show('laws')"); p.select_option("#lawSel", "Arizona"); p.wait_for_timeout(80)
+        check("Laws", "Arizona shows state law links with state law links", "ARIZONA" in p.inner_text("#lawBody") and p.locator("#lawBody .check a").count() == 4)
+        check("Laws", "All 50 states + DC + federal to pick", p.locator("#lawSel option").count() == 52)
+        p.select_option("#lawSel", "New York"); p.wait_for_timeout(60)
+        check("Laws", "Picking a state updates links", "law.justia.com/new-york/" in p.evaluate("[...document.querySelectorAll('#lawBody a')].map(a=>a.href).join(' ')"))
+        check("Laws", "Topic searches are .gov-focused", p.locator("#lawBody .pill.out").count() == 8)
+        p.select_option("#lawSel", "US"); p.wait_for_timeout(60)
+        check("Laws", "Federal view shows nationwide rules", "22nd Amendment" in p.inner_text("#lawBody") and p.locator("#lawBody .pfrow").count() == 7)
+        check("Laws", "Federal links all https", p.evaluate("[...document.querySelectorAll('#lawBody a')].every(a=>a.href.startsWith('https://'))"))
+        p.evaluate("show('state')"); p.select_option("#stateSel", "Texas"); p.click("#stateLaws"); p.wait_for_timeout(100)
+        check("Laws", "Your State page opens that state's laws", vis("laws") and "TEXAS" in p.inner_text("#lawBody"))
+        check("Name", "App is named Red American News", p.title() == "Red American News" and "RED AMERICAN NEWS" in p.inner_text("#v-signin") and "Make Republican" not in p.content())
+        check("Name", "Not-affiliated note on More page", "Not affiliated with Donald Trump" in p.inner_text("#moreNote"))
+        p.evaluate("show('home')"); p.wait_for_timeout(80)
+        check("News", "Top story is this week's", "doing fantastically" in p.inner_text("#v-home"))
+        for sid in ["succ","poll","cc","energy","house"]:
+            p.evaluate(f"openStory('{sid}')"); p.wait_for_timeout(40)
+            check("News", f"Story '{sid}' opens with sources", p.locator("#stFacts li, #stFacts div").count() >= 1 and p.evaluate("[...document.querySelectorAll('#stSrc a')].length>=1 && [...document.querySelectorAll('#stSrc a')].every(a=>a.href.startsWith('https://'))"))
         check("Sync", "Saved-on-this-phone note shows", "saved on this phone" in p.inner_text("#syncNote"))
         # layout: nothing wider than the phone screen
-        for t in ["race2028", "home", "map", "feed", "more", "cand", "compare", "quiz", "polls", "calendar"]:
-            (p.evaluate("openProfile('Sarah Huckabee Sanders')") if t == "cand" else (p.evaluate(f"show('{t}')") if t in ("compare","quiz","polls","calendar") else tab(t))); p.wait_for_timeout(100)
+        for t in ["race2028", "home", "map", "feed", "more", "cand", "compare", "quiz", "polls", "calendar", "laws"]:
+            (p.evaluate("openProfile('Sarah Huckabee Sanders')") if t == "cand" else (p.evaluate(f"show('{t}')") if t in ("compare","quiz","polls","calendar","laws") else tab(t))); p.wait_for_timeout(100)
             sw = p.evaluate("document.documentElement.scrollWidth")
             check("Layout", f"'{t}' fits phone width (no sideways scroll)", sw <= 392, f"scrollWidth={sw}")
         tab("home"); shot("06-home")
