@@ -1,4 +1,4 @@
-const C='mrga-v1';const F=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(F))));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x))))));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(C).then(x=>x.put(e.request,c));return r}).catch(()=>caches.match(e.request)))});
+const C='ran-v2';const F=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(F)).catch(()=>{}))});
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const page=e.request.mode==='navigate'||/index\.html$|\/$/.test(new URL(e.request.url).pathname);e.respondWith((page?fetch(e.request.url,{cache:'no-store',credentials:'same-origin'}):fetch(e.request)).then(r=>{const c=r.clone();caches.open(C).then(x=>x.put(e.request,c));return r}).catch(()=>caches.match(e.request)))});

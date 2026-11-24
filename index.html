@@ -8,7 +8,7 @@
 <style>
 :root{--blue:#0B2A5B;--red:#B22234;--sky:#EAF0FA;--line:#D5DDEB;--muted:#3D4A63}
 *{box-sizing:border-box}
-html,body{margin:0;background:#C9D6EC;font-family:Inter,sans-serif;color:#10182B}
+html,body{margin:0;background:#C9D6EC;font-family:Inter,sans-serif;color:#10182B;overscroll-behavior-y:none}
 .app{max-width:440px;margin:0 auto;min-height:100vh;background:#fff;display:flex;flex-direction:column;position:relative}
 .top{background:var(--blue);color:#fff;padding:16px 16px 12px;position:sticky;top:0;z-index:5}
 .toprow{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -1006,10 +1006,10 @@ let signedIn=false,isNew=false,following=0,reposts=0;
 const _show=show;show=function(v,p){if(['profile','people'].includes(v)&&!signedIn){_pending=v;v='signin'}_show(v,p)};let _pending='profile';
 function needSignIn(){if(!signedIn){_pending=current;toast('Sign in first');show('signin');return true}return false}
 siToggle.addEventListener('click',()=>{isNew=!isNew;nameRow.style.display=isNew?'flex':'none';siTitle.textContent=isNew?'Join the Movement':'Welcome, Patriot';siBtn.textContent=isNew?'Create Account':'Sign In';siToggle.textContent=isNew?'Already have an account? Sign in':'New here? Create an account'});
-function doSignIn(name){signedIn=true;document.querySelector('.app').classList.remove('gate');const n=(name||'Patriot').trim()||'Patriot';pName.textContent=n;if(!myPhoto)pAv.textContent=n[0].toUpperCase();toast('Welcome, '+n+'!');history_=[];show(_pending,false)}
+function doSignIn(name,quiet){signedIn=true;document.querySelector('.app').classList.remove('gate');const n=(name||'Patriot').trim()||'Patriot';try{localStorage.setItem('ran_signin',n)}catch(e){}pName.textContent=n;if(!myPhoto)pAv.textContent=n[0].toUpperCase();if(!quiet)toast('Welcome, '+n+'!');history_=[];show(_pending,false)}
 siform.addEventListener('submit',e=>{e.preventDefault();const n=siName.value||(siEmail.value.split('@')[0]);doSignIn(n)});
 document.querySelectorAll('[data-social]').forEach(b=>b.addEventListener('click',()=>doSignIn('Patriot')));
-signOut.addEventListener('click',()=>{signedIn=false;toast('Signed out');_pending='race2028';history_=[];document.querySelector('.app').classList.add('gate');show('signin',false)});
+signOut.addEventListener('click',()=>{signedIn=false;try{localStorage.removeItem('ran_signin')}catch(e){}toast('Signed out');_pending='race2028';history_=[];document.querySelector('.app').classList.add('gate');show('signin',false)});
 pTabs.addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;pTabs.querySelectorAll('button').forEach(x=>{x.classList.toggle('on',x===b);x.classList.toggle('out',x!==b)});['reposts','comments','feed','takes','videos'].forEach(k=>document.getElementById('p-'+k).style.display=k===b.dataset.p?'flex':'none')});
 function addTo(listId,html){const l=document.getElementById(listId);const em=l.querySelector('.empty');if(em)em.remove();const d=document.createElement('div');d.className='card';d.style.cursor='default';d.append(...html);l.prepend(d)}
 function el(t,css,txt){const e=document.createElement(t);e.style.cssText=css;e.textContent=txt;return e}
@@ -1117,6 +1117,7 @@ refreshAll();
 document.querySelector('#v-race2028 > .back').style.display='none';
 _pending='race2028';document.querySelector('.app').classList.add('gate');
 show('signin',false);
+(function(){var sv=null;try{sv=localStorage.getItem('ran_signin')}catch(e){}if(sv){_pending='home';doSignIn(sv,true)}})();
 
 // ===== 2026 midterm map =====
 const ST_NAMES={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
